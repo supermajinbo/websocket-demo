@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket Client</title>
+</head>
+
+<body>
+  <h1>WebSocket Client</h1>
+  <button id="init-user-info">init user info</button>
+  <button id="send-data-with-uid">Send Data With UID</button>
+  <button id="close">Close</button>
+  <button id="connect">Connect</button>
+  <button id="clear">Clear</button>
+  <div id="content"></div>
+</body>
+<script>
+  var ws = null
+  let uid = ''
+
+  function checkConnect() {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      return true
+    } else {
+      return false
+    }
+  }
+
+  function addText(data) {
+    const content = document.getElementById('content')
+    content.innerHTML += `<p>${data}</p>`
+  }
+
+  function sendData(data, autoConnect = true, errMsg = 'WebSocket connection is not open') {
+    // 如果连接已打开，则直接发送
+    if (checkConnect()) {
+      ws.send(JSON.stringify(data))
+      return
+    }
+
+    // 如果连接未打开，则自动连接
+    if (autoConnect) {
+      initWebSocket().then(() => {
+        ws.send(JSON.stringify(data))
+      })
+      return
+    }
+
+    // 如果连接未打开，则提示错误
+    addText(errMsg)
+  }
+
+  function initButton() {
+    const sendDataWithUidBtn = document.getElementById('send-data-with-uid')
+    const closeBtn = document.getElementById('close')
+    const initUserInfoBtn = document.getElementById('init-user-info')
+    const connectBtn = document.getElementById('connect')
+    const clearBtn = document.getElementById('clear')
+
+    sendDataWithUidBtn.addEventListener('click', () => {
+      sendData({
+        type: 'TEXT',
+        data: 'Hello Server',
+        uid: uid
+      })
+    })
+
+    closeBtn.addEventListener('click', () => {
+      ws.close()
+    })
+
+    initUserInfoBtn.addEventListener('click', () => {
+      sendData({
+        type: 'ACK',
+        user: 'userName'
+      })
+    })
+
+    connectBtn.addEventListener('click', () => {
+      initWebSocket()
+    })
+
+    clearBtn.addEventListener('click', () => {
+      const content = document.getElementById('content')
+      content.innerHTML = ''
+    })
+  }
+
+  function initWebSocket() {
+    if (checkConnect()) {
+      addText('WebSocket connection already opened')
+      return Promise.resolve()
+    }
+
+    return new Promise((resolve) => {
+
+      ws = new WebSocket('ws://127.0.0.1:8080')
+
+      ws.onopen = () => {
+        console.log('WebSocket connection opened')
+        resolve()
+      }
+
+      ws.onmessage = (event) => {
+        addText('[server] ' + event.data)
+        try {
+          const data = JSON.parse(event.data)
+          if (data.type === 'ACK') {
+            uid = data.uid
+            addText('[client] uid: ' + uid)
+          }
+        } catch {
+          // do nothing
+        }
+      }
+
+      ws.onclose = () => {
+        addText('[client] WebSocket connection closed')
+        ws = null
+      }
+
+      ws.onerror = () => {
+        addText('[client] WebSocket error')
+        ws.close()
+      }
+    })
+  }
+
+  window.addEventListener('load', () => {
+    initWebSocket()
+    initButton()
+  })
+</script>
+
+</html>

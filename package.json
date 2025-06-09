@@ -1,0 +1,20 @@
+{
+  "name": "websocket",
+  "version": "1.0.0",
+  "description": "websocket learn",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "start": "npm run start --workspaces",
+    "start:web": "npm start --workspace=ws-client",
+    "start:server": "npm start --workspace=ws-server"
+  },
+  "keywords": [
+    "websocket"
+  ],
+  "author": "majinbo",
+  "license": "ISC"
+}
