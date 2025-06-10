@@ -119,6 +119,7 @@
       ws.onclose = () => {
         addText('[client] WebSocket connection closed')
         ws = null
+        uid = ''
       }
 
       ws.onerror = () => {

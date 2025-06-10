@@ -3,13 +3,19 @@
   "version": "1.0.0",
   "description": "",
   "type": "module",
+  "types": "./types/index.d.ts",
+  "main": "./dist/index.js",
   "scripts": {
-    "start": "node index.js"
+    "build": "tsc",
+    "dev": "node --loader ts-node/esm index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "os": "^0.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0"
   }
 }

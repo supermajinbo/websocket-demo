@@ -3,12 +3,21 @@ import http from 'http'
 import crypto from 'crypto'
 // 使用ws库来处理WebSocket连接
 import { WebSocketServer } from 'ws'
-import { getIp } from 'shared/index.js'
+import { getIp } from 'shared'
 
 const TIMEOUT = 10000
+const DEFAULT_PORT = 8080
+const DEFAULT_HOST = '127.0.0.1'
+
+interface MessageData {
+  type?: string
+  user?: string
+  uid?: string
+  [key: string]: any
+}
 
 // MD5 哈希函数
-function md5(str) {
+function md5(str: string): string {
   return crypto.createHash('md5').update(str).digest('hex')
 }
 
@@ -23,7 +32,7 @@ const wss = new WebSocketServer({ server })
 const map = new Map()
 
 // 监听WebSocket连接
-wss.on('connection', (ws, req) => {
+wss.on('connection', (ws) => {
   // const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress
   // console.log(`新的客户端连接，IP: ${clientIp}`)
 
@@ -39,7 +48,7 @@ wss.on('connection', (ws, req) => {
   ws.on('message', (message) => {
     map.set(ws, Date.now())
     let type = ''
-    let data = {}
+    let data: MessageData = {}
     try {
       const messageJson = JSON.parse(message.toString())
       type = messageJson.type
@@ -50,7 +59,7 @@ wss.on('connection', (ws, req) => {
     // console.log('🚀 ~ :44 ~ ws.on ~ data:', type, data)
     switch (type) {
       case 'ACK':
-        ws.send(JSON.stringify({ type: 'ACK', uid: md5(data.user) }))
+        ws.send(JSON.stringify({ type: 'ACK', uid: md5(data.user || '') }))
         break
       case 'TEXT':
         if (data.uid) {
@@ -93,6 +102,8 @@ setInterval(() => {
   })
 }, TIMEOUT)
 
-server.listen(8080, '127.0.0.1', () => {
-  console.log(`Server is running on http://127.0.0.1:8080`)
+const PORT: number = Number(process.env.PORT) || DEFAULT_PORT
+
+server.listen(PORT, DEFAULT_HOST, () => {
+  console.log(`Server is running on http://${DEFAULT_HOST}:${PORT}`)
 })
