@@ -96,7 +96,7 @@
 
     return new Promise((resolve) => {
 
-      ws = new WebSocket('ws://127.0.0.1:8080')
+      ws = new WebSocket('ws://127.0.0.1:8080/api/ws')
 
       ws.onopen = () => {
         console.log('WebSocket connection opened')

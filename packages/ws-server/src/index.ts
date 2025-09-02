@@ -26,8 +26,8 @@ const server = http.createServer((req, res) => {
   res.end(`Hello ${req.url}`)
 })
 
-// 创建WebSocket服务器实例
-const wss = new WebSocketServer({ server })
+// 创建WebSocket服务器实例，仅当访问 /api/ws 时才建立连接
+const wss = new WebSocketServer({ server, path: '/api/ws' })
 
 const map = new Map()
 
@@ -78,8 +78,8 @@ wss.on('connection', (ws) => {
   })
 
   // 监听连接关闭
-  ws.on('close', () => {
-    console.log('WebSocket connection closed')
+  ws.on('close', (code, reason) => {
+    console.log('WebSocket connection closed', { code, reason: reason?.toString() })
   })
 
   // 监听错误
@@ -96,7 +96,7 @@ setInterval(() => {
   wss.clients.forEach((ws) => {
     const time = map.get(ws)
     if (time && Date.now() - time > TIMEOUT) {
-      ws.close()
+      ws.close(1001, 'timeout')
       map.delete(ws)
     }
   })
